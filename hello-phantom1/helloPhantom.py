@@ -176,7 +176,7 @@ class HelloPhantom:
             self.text = "current events include "
             count = 0
             for event in recentEvents[]:
-                if(count<3 and event.getDate() - datetime.date.today() >= 0):
+                if(count<3 and event.getDate() >= datetime.date.today()):
                     self.text += f"{event} and "
                     count++
         else:
