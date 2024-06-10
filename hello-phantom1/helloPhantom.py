@@ -174,12 +174,15 @@ class HelloPhantom:
         
         if(self.prompt.find("recent") != -1):
             self.text = "current events include "
-            for event in recentEvents[:3]:
-                self.text += f"{event} and "
+            count = 0
+            for event in recentEvents[]:
+                if(count<3 and event.getDate() - datetime.date.today() >= 0):
+                    self.text += f"{event} and "
+                    count++
         else:
             print(f"{self.date}")
             self.text = "There is a "
             for event in recentEvents[]:
                 if(event.getDate() == self.date):
                     self.text += f"{event}"
-
+                    break
