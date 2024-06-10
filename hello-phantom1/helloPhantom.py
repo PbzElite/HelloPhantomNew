@@ -171,13 +171,15 @@ class HelloPhantom:
                 recentEvents.append(Event(str(title),str(date),str(time),str(location)))
         else:
             print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
-        self.text = "current events include "
-
+        
         if(self.prompt.find("recent") != -1):
+            self.text = "current events include "
             for event in recentEvents[:3]:
                 self.text += f"{event} and "
         else:
             print(f"{self.date}")
+            self.text = "There is a "
             for event in recentEvents[]:
                 if(event.getDate() == self.date):
-                    print("done")
+                    self.text += f"{event}"
+
