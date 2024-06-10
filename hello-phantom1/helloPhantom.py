@@ -55,6 +55,8 @@ class HelloPhantom:
 
         month = ""
         day = ""
+        time = "" #don't know why it can't access, might be a local var issue and have to move it up
+
         for i in range(len(words)):
             if words[i] == "yesterday" or words[i] == "today" or words[i] == "tomorrow":
                 time = words[i]
@@ -76,8 +78,7 @@ class HelloPhantom:
                     'twenty-nine', 'thirty', 'thirty-one']
             monthNum = -1
             dayNum = -1
-            time = ""
-
+            
             for i in range(len(monthArr)):
                 if month == monthArr[i]:
                     monthNum = i + 1
@@ -95,12 +96,14 @@ class HelloPhantom:
                 self.date = datetime.date.today() - datetime.timedelta(days=1)
             elif time == "tomorrow":
                 self.date = datetime.date.today() + datetime.timedelta(days=1)
+        self.prompt += f" {d.isoformat(self.date)}" 
     
     #sets what the bot will speak based on the keywords
     def process(self):
         
         url = "https://www.wunderground.com/weather/us/ny/bayport/"
 
+        #how to change this input based on the prompt, thinking to do something in this format: "keyword date" so it can just substring it
         input = "2024-06-09"
         today = datetime.date.today()
         tomorrow = today + timedelta(days=1)
