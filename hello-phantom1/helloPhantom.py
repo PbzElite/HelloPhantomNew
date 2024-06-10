@@ -102,9 +102,9 @@ class HelloPhantom:
     def process(self):
         
         url = "https://www.wunderground.com/weather/us/ny/bayport/"
-
+        #0000-00-00
         #how to change this input based on the prompt, thinking to do something in this format: "keyword date" so it can just substring it
-        input = "2024-06-09"
+        input = f"{self.prompt[self.prompt.find(" "):self.prompt.find(" ")+10]}"
         today = datetime.date.today()
         tomorrow = today + timedelta(days=1)
 
@@ -118,7 +118,6 @@ class HelloPhantom:
         html = requests.get(url).content
         soup = BeautifulSoup(html, 'html.parser')
         recentEvents = []
-
 
         #if the input IS today, then the temperature, high and low, and a blurb is found
         #prints the weather output
