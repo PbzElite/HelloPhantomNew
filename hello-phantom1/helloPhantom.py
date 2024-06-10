@@ -48,6 +48,9 @@ class HelloPhantom:
         for i in range(len(words)):
             if words[i] == "weather" or words[i] == "temperature" or words[i] == "calendar" or words[i] == "events" or words[i] == "announcements":
                 self.prompt = words[i]
+                if words[i] == "calendar" or words[i] == "events" or words[i] == "event" or words[i] == "announcements":
+                    if self.text.find("recent") != -1:
+                        self.prompt += f",recent"
                 break
             else:
                 self.prompt = "not found"
@@ -143,17 +146,15 @@ class HelloPhantom:
             print(f"{next}")
             #print("ran3")
         #prints the events output
-        elif self.prompt == "events" or self.prompt() == "announcements":
-            #Added the events of a calendar, requires some tweaking
+        elif self.prompt.find("events") != -1 or self.prompt.find("event") != -1 or self.prompt.find("announcements") != -1:
             # URL of the events page
             url = "https://www.bbpschools.org/o/bbphs/events"
-            #input = "What are the recent events"
 
             # Send a GET request to the webpage
             response = requests.get(url)
 
             # Check if the request was successful and see if the input is asking for events
-            if self.prompt.find("events") != -1 or self.prompt.find("event") != -1 and response.status_code == 200:
+            if response.status_code == 200:
                 # Parse the HTML content of the page
                 soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -161,25 +162,22 @@ class HelloPhantom:
                 events_container = soup.find_all('div', class_='event-list-item')  # Adjust the class based on the actual HTML structure
                 
             # Iterate over each event and extract relevant details
-            for event in events_container[:3]:
+            for event in events_container:
                 title = event.find('div', class_='title').text.strip() if event.find('div', class_='title') else 'No Title'
                 date = event.find('div', class_='month').text.strip() if event.find('div', class_='month') else 'No Date'
                 date += " " + event.find('div', class_='day').text.strip() if event.find('div', class_='day') else 'No Date'
                 time = event.find('div', class_='hour').text.strip() if event.find('div', class_='hour') else 'No Time'
                 location = event.find('div', class_='venue').text.strip() if event.find('div', class_='venue') else 'No Location'
                 recentEvents.append(Event(str(title),str(date),str(time),str(location)))
-
-                # Print the extracted details
-                '''
-                print(f"Title: {title}")
-                print(f"Date: {date}")
-                print(f"Time: {time}")
-                print(f"Location: {location}") if location.strip() != "" else print("")
-                print("-" * 40)
-                '''
         else:
             print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
         self.text = "current events include "
-        for event in recentEvents:
-            #print(event)
-            self.text += f"{event} and "
+
+        if(self.prompt.find("recent") != -1):
+            for event in recentEvents[:3]:
+                self.text += f"{event} and "
+        else:
+            print(f"{self.date}")
+            for event in recentEvents[]:
+                if(event.getDate() == self.date):
+                    print("done")
