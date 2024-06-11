@@ -11,6 +11,8 @@ class Event:
         return self.title
     def getDate (self):
         return self.date
+    def setDate(self,str):
+        self.date = str
     def getTime(self):
         return self.time
     def getLocation(self):
