@@ -30,6 +30,7 @@ class HelloPhantom:
             
         try:
             self.text = r.recognize_google(audio,language="en")
+            print({self.text})
         except sr.UnknownValueError:
             print("what are you doing")
 
@@ -37,7 +38,7 @@ class HelloPhantom:
         #self.text = "Hello"
         language = "en"  # Specify the language (IETF language tag)
         output_file = "output.mp3"  # Specify the output file (only accepts .mp3)
-
+        print({self.text})
         save(self.text, language, file=output_file)
     
     #sets the prompt to the specific keywords
@@ -55,6 +56,7 @@ class HelloPhantom:
         string = self.text
         words = string.split(' ')
 
+        ##will make the keyword prompt as the word that's important that they found in the string that you said
         for i in range(len(words)):
             if words[i] == "weather" or words[i] == "temperature" or words[i] == "calendar" or words[i] == "events" or words[i] == "announcements":
                 self.prompt = words[i]
@@ -70,7 +72,9 @@ class HelloPhantom:
         day = ""
         time = "" #don't know why it can't access, might be a local var issue and have to move it up
         
+        #similar to line 59, but its the day not the keyward
         print(f"74 {string}")
+        print(f"75 {words}")
         for i in range(len(words)):
             if words[i] == "yesterday" or words[i] == "today" or words[i] == "tomorrow":
                 self.prompt += f" {words[i]}"
@@ -99,7 +103,27 @@ class HelloPhantom:
                 break
             else:
                 self.date = datetime.date.today()
+        print(f"106 {self.prompt}")
+
         
+    #converts event.date to datetime format
+    import datetime
+
+    def convert_string_to_date(self,date_str, year=2024):
+        # Check if date_str is a string
+        #if not isinstance(date_str, str):
+            #raise TypeError(f"Expected a string for date_str, but got {type(date_str).__name__}")
+        
+        # Convert the date_str argument to a datetime object
+        #try:
+        date_obj = datetime.datetime.strptime(date_str, "%b %d")
+        #except ValueError as e:
+           # raise ValueError(f"Invalid date format: {date_str}. Expected format: 'Sep 6'.") from e
+        
+        # Create a datetime.date object using the year, month, and day
+        full_date = datetime.date(year, date_obj.month, date_obj.day)
+        return full_date
+
     #sets what the bot will speak based on the keywords
     def process(self):
         
@@ -145,8 +169,13 @@ class HelloPhantom:
             print(f"{next}")
         #prints the events output
         elif self.prompt.find("events") != -1 or self.prompt.find("event") != -1 or self.prompt.find("announcements") != -1:
-            # URL of the events page
-            url = "https://www.bbpschools.org/o/bbphs/events"
+            # URL of the events page, this will need to be updated every year (scratch that cause it will cause huge delays)
+            #format: https://bayportbluepointny.sites.thrillshare.com/events?start_date=2024-09-01&end_date=2025-10-31&filter_ids=327083,327083,325682,325682
+            startdate = datetime.date.today() - datetime.timedelta(days=14)
+            enddate = datetime.date.today() + datetime.timedelta(days=40)
+            start = datetime.date(startdate.year,startdate.month,startdate.day)
+            end = datetime.date(enddate.year,enddate.month,enddate.day)
+            url = f"https://bayportbluepointny.sites.thrillshare.com/events?start_date={start}&end_date={end}&filter_ids=327083,327083,325682,325682"
 
             # Send a GET request to the webpage
             response = requests.get(url)
@@ -166,7 +195,10 @@ class HelloPhantom:
                     date += " " + event.find('div', class_='day').text.strip() if event.find('div', class_='day') else 'No Date'
                     time = event.find('div', class_='hour').text.strip() if event.find('div', class_='hour') else 'No Time'
                     location = event.find('div', class_='venue').text.strip() if event.find('div', class_='venue') else 'No Location'
-                    recentEvents.append(Event(str(title),str(date),str(time),str(location)))
+                    #recentEvents.append(Event(str(title),str(date),str(time), str(location)))
+                    recentEvents.append(Event(str(title),str(date), str(location)))
+                
+                #TASK: fix logic to get all commands working: today (good),recent (needs checking),yesterday (good) ,tomorrow ( good),specific date (needs to be implemented), maybe even lookup specific events (needs to be implemented)
                 if(self.prompt.find("recent") != -1):
                     self.text = "current events include "
                     count = 0
@@ -177,20 +209,61 @@ class HelloPhantom:
                                 num = int(event.getDate()[event.getDate().find(" ")+1:])
                                 compDate = datetime.date(datetime.date.today().year,i+1,num)
                                 if(count<3 and compDate >= datetime.date.today()):
-                                    self.text += f"{event} and "
+                                    self.text += f"{event}"
                                     count+=1
                                 break
-                else:
-                    print(f"{self.date}")
+                elif(self.prompt.find("tomorrow") != -1):
+                    print(f"192 {self.date}")
                     self.text = "There is a "
+                    count = 0
+                    
                     for event in recentEvents:
-                        for i in range(len(short_months)):
-                            if(event.getDate()[:3] == short_months[i]):
-                                num = int(event.getDate()[event.getDate().find(" ")+1:])
-                                compDate = datetime.date(datetime.date.today().year,i+1,num)
-                                if(compDate == self.date):
-                                    self.text += f"{event}"
-                                    break
+                        if(count <3):
+                            for i in range(len(short_months)):
+                                if(event.getDate()[:3] == short_months[i]):
+                                    num = int(event.getDate()[event.getDate().find(" ")+1:])
+                                    #compDate = datetime.date(datetime.date.today().year,i+1,num+1)
+                                    cdate = datetime.date.today() + timedelta(days=1)
+                                    compDate = datetime.date(cdate.year,cdate.month,cdate.day)
+                                    #issue is the Sep 6 needs to be converted to 2024-09-06
+                                    
+                                    if(compDate == self.convert_string_to_date(str(event.getDate()))):
+                                        self.text += f"{event}"
+                                        print(f"201 {event}")
+                                        count+=1
+                                        break
+                                    else:
+                                        break
+                        else:
+                            break
+                    if count == 0:
+                        self.text = "There are no events on that day"
+                elif(self.prompt.find("yesterday") != -1):
+                    print(f"242 {self.date}")
+                    self.text = "There is a "
+                    count = 0
+                    
+                    for event in recentEvents:
+                        if(count <3):
+                            for i in range(len(short_months)):
+                                if(event.getDate()[:3] == short_months[i]):
+                                    num = int(event.getDate()[event.getDate().find(" ")+1:])
+                                    #compDate = datetime.date(datetime.date.today().year,i+1,num+1)
+                                    cdate = datetime.date.today() - timedelta(days=1)
+                                    compDate = datetime.date(cdate.year,cdate.month,cdate.day)
+                                    #issue is the Sep 6 needs to be converted to 2024-09-06
+                                    
+                                    if(compDate == self.convert_string_to_date(str(event.getDate()))):
+                                        self.text += f"{event}"
+                                        print(f"201 {event}")
+                                        count+=1
+                                        break
+                                    else:
+                                        break
+                        else:
+                            break
+                    if count == 0:
+                        self.text = "There are no events on that day"
         else:
             response = requests.get(url)
             print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
